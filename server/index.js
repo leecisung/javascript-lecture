@@ -1,5 +1,5 @@
-var express = require("express")    //express 모듈을 로드
-var app = express() //express 모듈안에 있는 express class 불러오는 과정
+var express = require("express");    //express 모듈을 로드
+var app = express(); //express 모듈안에 있는 express class 불러오는 과정
 
 //__dirname : index.js 파일이 있는 위치
 // +"/views" : 하위폴더 views으로 이동
@@ -10,18 +10,23 @@ app.set("views",__dirname + "/views");
 //ejs엔진은 html 구동할 때 사용하는 엔진 중 하나, html도 있으나 복잡
 app.set("view engene", "ejs");
 
-//name 오류 해결
-app.use(express.json()) 
-app.use(express.urlencoded({extended:false}))
+//name 오류 해결 post값 안보내질떄
+app.use(express.json()); // json 형식의 테이터를 사용
+app.use(express.urlencoded({extended:false}));  
+// post 형식 데이터를 받을떄 True 패키지 새로 설치 해야됨 
+// false 형태일떄는 추가 패키지 설치 필요 X
 
 
-// 웹 서버가 시작 -> api를 생성
-// 통신방식 get, post
+// [2] make api
+//웹 서버가 시작 -> api를 생성
+// 통신방식 get, post / get은 데이터가 쿼리에 post는 데이터가 body에
 app.get("/", function(req, res){ //localhost:3000/(자기자신PC) 로 호출했을 때 req(요청) res(응답)
-    res.render("index.ejs"); //render 덮어씌우겠다
+    res.render("index.ejs"); //render 덮어씌우겠다, index.ejs 파일을 브라우저에 덮어준다.
+    
 })
 
 app.get("/second", function(req, res){ //localhost:3000/second 로 호출했을 때
+    //res.render("second.ejs");
     /*
         list 형태의 데이터
         [10,20,30]
@@ -41,27 +46,37 @@ app.get("/second", function(req, res){ //localhost:3000/second 로 호출했을 
     //req.query -> json의 형태
     //입력한 ID 값은 req.query.ID
     //입력한 password 값은 req.query.password 에 들어온다.
-    console.log("query : ", req.query) //get은 데이터가 쿼리에 post는 데이터가 body에 있다.
-    console.log("ID : ", req.query.ID)
-    console.log("password : ", req.query.password)
+    // console.log("query : ", req.query) //get은 데이터가 쿼리에 post는 데이터가 body에 있다.
+    // console.log("ID : ", req.query.ID)
+    // console.log("password : ", req.query.password)
 
     // id : test, password : 1234 로그인 성공
     // 로그인이 성공하면 Second page 출력
     // 로그인이 실패하면 Login fail 출력
-    if(req.query.ID == "test" && req.query.password == "1234"){
-        res.send("Second page"); //데이터를 보내준다.보통 공공데이터 전송시
+    if(req.query.id == "test" && req.query.pass == "1234"){
+      res.render("second.ejs"); //데이터를 보내준다.보통 공공데이터 전송시
     }
     else{
-        res.send("Login fail");
+        res.redirect("/");
     }
 })
 
+//localhost:3000/third
+//get 형식은 url 데이터를 담아서 보내고 POST 형식은 body에 숨겨서 데이터를 보낸다.
 app.post("/third", function(req,res){
-    console.log("body : ", req.body)
-    console.log("name : ", req.body.name)
-    res.send("Thrid page");
+    console.log(req.body);
+    var input_name = req.body.user_name;
+    var input_phone = req.body.user_phone;
+    console.log(input_name, input_phone);
+    res.render("third.ejs",
+        {
+            name : input_name,
+            phone : input_phone,
+        }
+    );
 })
 
+//[1] server start
 var port = 3000;
 app.listen(port, function(){
     console.log("웹 서버 시작");
