@@ -1,6 +1,19 @@
 var express = require("express");    //express 모듈을 로드
 var app = express(); //express 모듈안에 있는 express class 불러오는 과정
 
+//mysql2 라이브러리 로드
+var mysql = require("mysql2");
+//mysql 접속 정보 지정
+var connection = mysql.createConnection(
+    {
+    host : "localhost",
+    port : 3306,
+    user : "root",
+    password : "1557",
+    database : "blockchain",
+    }
+);
+
 //__dirname : index.js 파일이 있는 위치
 // +"/views" : 하위폴더 views으로 이동
 //보여줄 html의 위치를 지정, views폴더를 만든다.
@@ -59,6 +72,112 @@ app.get("/second", function(req, res){ //localhost:3000/second 로 호출했을 
     else{
         res.redirect("/");
     }
+})
+
+//localhost:3000/signup 주소로 요청을 보내면 signup.ejs 보여주겠다.
+app.get("/signup", function(req, res){
+    res.render("signup.ejs")
+})
+
+app.post("/signup2", function(req, res){
+    //signup 페이지에서 데이터를 2개를 send
+    //두 데이터의 값을 ㅂㄴ수로 지정
+    //DB insert()
+    var input_id = req.body.id;
+    var input_pass = req.body.pass;
+    connection.query(
+        `insert into user_info(user_id, user_pass) values (?, ?)`,
+        [input_id, input_pass],
+        function(err, result) {
+            if(err) { //sql이 에러가 났을때
+                console.log(err);
+                res.send("sql error");
+            }else {
+              res.redirect("/"); //로그인이 실패
+                }
+            })
+        }
+    )
+
+
+//회원정보 수정 페이지로 이동 api 생성
+app.get("/update", function(req, res){
+    res.render("update.ejs");
+})
+
+
+//회원정보수정
+//조건 : 아이디값이 같은 데이터의 password를 변경
+//id와 password 두 데이터를 유저에게서 받아오는 작업
+// 1. api 생성, 2. 유저가 보내온 데이터를 변수에 저장 3. sql쿼리문을 이용하여 수정 4. index.ejs로 돌아간다.
+app.post("/update2", function(req,res){
+    var input_id =req.body.id;
+    var input_pass=req.body.pass;
+    console.log(input_id);
+    console.log(input_pass);
+    connection.query(
+        `update user_info set user_pass = ? where user_id = ?`,
+        [input_pass, input_id],
+        function(err, result) {
+            if(err) { //sql이 에러가 났을때
+                console.log(err);
+                res.send("sql error");
+            }else {
+              res.redirect("/"); 
+                }
+            }
+    )
+})
+
+
+//회원 탈퇴
+//회원 탈퇴 페이지 이동 api 생성
+app.get("/delete", function(req, res){
+    res.render("delete.ejs");
+})
+
+app.post("/delete2", function(req,res){
+    var input_id =req.body.id;
+    var input_pass=req.body.pass;
+    console.log(input_id);
+    console.log(input_pass);
+    connection.query(
+        `delete from user_info where user_id = ?`,
+        [input_id],
+        function(err, result) {
+            if(err) { //sql이 에러가 났을때
+                console.log(err);
+                res.send("sql error");
+            }else {
+              res.redirect("/"); 
+                }
+            }
+    )
+
+})
+
+app.post("/login", function(req,res){
+    var input_id = req.body.id;
+    var input_password = req.body.pass;
+    //input 데이터를 sql 담아서 쿼리문 실행 결과값 리턴
+    connection.query( //띄어쓰기 조심해야됨
+        `select * from user_info where user_id= ? and user_pass = ?`,
+        [input_id, input_password],
+        function(err, result) {
+            if(err) { //sql이 에러가 났을때
+                console.log(err);
+                res.send("sql error");
+            }else {
+                if(result.length > 0) { //id와 password의 조건이 둘다 참이므로
+                    console.log(result);
+                    res.render("second.ejs"); //데이터가 존재하는 경우(로그인 성공)
+                }else {
+                    console.log(result);
+                    res.redirect("/"); //로그인이 실패
+                }
+            }
+        }
+    )
 })
 
 //localhost:3000/third
